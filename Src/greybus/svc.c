@@ -38,6 +38,7 @@ static int svc_handler_request(uint16_t cport_id, uint16_t hd_cport_id,
 	struct gb_svc_route_destroy_request *svc_route_destroy;
 	uint16_t message_size = sizeof(*oph);
 	size_t payload_size = 0;
+	int ret;
 
 	switch (oph->type) {
 	case GB_REQUEST_TYPE_PROTOCOL_VERSION:
@@ -117,9 +118,14 @@ static int svc_handler_request(uint16_t cport_id, uint16_t hd_cport_id,
 	}
 
 	message_size += payload_size;
-	return send_response(hd_cport_id, op_rsp, message_size,
+	ret = send_response(hd_cport_id, op_rsp, message_size,
 				oph->operation_id, oph->type,
 				PROTOCOL_STATUS_SUCCESS);
+
+	if (oph->type == GB_SVC_TYPE_PING)
+		manifest_startup = 1;
+
+	return ret;
 }
 
 static int svc_handler_response(uint16_t cport_id, uint16_t hd_cport_id,
@@ -154,12 +160,6 @@ static int svc_handler_response(uint16_t cport_id, uint16_t hd_cport_id,
 		 * AP's SVC cport is ready now, start scanning for module
 		 * hotplug.
 		 */
-#if 0
-		ret = inotify_start(hotplug_basedir);
-		if (ret < 0)
-			gbsim_error("Failed to start inotify thread\r\n");
-#endif
-		gbsim_info("Here it started inotify...\r\n");
 		manifest_startup = 1;
 		break;
 	case GB_SVC_TYPE_INTF_HOT_UNPLUG:

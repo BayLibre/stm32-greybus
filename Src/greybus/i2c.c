@@ -80,44 +80,15 @@ int i2c_handler(struct gbsim_connection *connection, void *rbuf,
 				    i, (read_op ? "read" : "write"),
 				    addr, size);
 			if (read_op) {
-				status = HAL_I2C_Master_Receive(&hi2c3, addr, &op_rsp->i2c_xfer_rsp.data[read_count], size, 1);
+				status = HAL_I2C_Master_Receive(&hi2c3, addr<<1, &op_rsp->i2c_xfer_rsp.data[read_count], size, 2);
 				read_count += size;
 			} else {
-				status = HAL_I2C_Master_Transmit(&hi2c3, addr, write_data, size, 1);
+				status = HAL_I2C_Master_Transmit(&hi2c3, addr<<1, write_data, size, 2);
 				write_data += size;
 			}
 
 			if (status != HAL_OK)
-				result = PROTOCOL_STATUS_RETRY;
-#if 0
-			/* FIXME: need some error handling */
-			if (bbb_backend)
-				if (ioctl(ifd, I2C_SLAVE, addr) < 0)
-					gbsim_error("failed setting i2c slave address\r\n");
-			if (read_op) {
-				if (bbb_backend) {
-					int count;
-					ioctl(ifd, BLKFLSBUF);
-					count = read(ifd, &op_rsp->i2c_xfer_rsp.data[read_count], size);
-					if (count != size)
-						gbsim_error("op %d: failed to read %04x bytes\r\n", i, size);
-				} else {
-					for (i = read_count; i < (read_count + size); i++)
-					op_rsp->i2c_xfer_rsp.data[i] = data_byte++;
-				}
-				read_count += size;
-			} else {
-				if (bbb_backend) {
-					int count;
-					count = write(ifd, write_data, size);
-					if (count != size) {
-						gbsim_debug("op %d: failed to write %04x bytes\r\n", i, size);
-						write_fail = true;
-					}
-				}
-				write_data += size;
-			}
-#endif
+				result = PROTOCOL_STATUS_BUSY;
 		}
 
 

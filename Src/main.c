@@ -51,22 +51,59 @@
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
 
-int verbose = 1;
+int verbose = 0;
 struct gbsim_interface interface;
 
-/* Sample manifest */
-unsigned char examples_IID1_simple_i2c_module_mnfb[] = {
-  0x4c, 0x00, 0x00, 0x01, 0x08, 0x00, 0x01, 0x00, 0x01, 0x02, 0x00, 0x00,
-  0x14, 0x00, 0x02, 0x00, 0x0b, 0x01, 0x50, 0x72, 0x6f, 0x6a, 0x65, 0x63,
-  0x74, 0x20, 0x41, 0x72, 0x61, 0x00, 0x00, 0x00, 0x1c, 0x00, 0x02, 0x00,
-  0x14, 0x02, 0x53, 0x69, 0x6d, 0x70, 0x6c, 0x65, 0x20, 0x49, 0x32, 0x43,
-  0x20, 0x49, 0x6e, 0x74, 0x65, 0x72, 0x66, 0x61, 0x63, 0x65, 0x00, 0x00,
-  0x08, 0x00, 0x04, 0x00, 0x01, 0x00, 0x01, 0x03, 0x08, 0x00, 0x03, 0x00,
-  0x01, 0x03, 0x00, 0x00
+/* Virtual Modules manifests */
+
+#define MODULES_COUNT 4
+
+unsigned char manifests[MODULES_COUNT][512] = {
+	//i2c
+	[0]= {
+			0x40, 0x00, 0x00, 0x01, 0x08, 0x00, 0x01, 0x00, 0x01, 0x02, 0x00, 0x00,
+			0x14, 0x00, 0x02, 0x00, 0x0b, 0x01, 0x50, 0x72, 0x6f, 0x6a, 0x65, 0x63,
+			0x74, 0x20, 0x41, 0x72, 0x61, 0x00, 0x00, 0x00, 0x10, 0x00, 0x02, 0x00,
+			0x09, 0x02, 0x53, 0x54, 0x4d, 0x33, 0x32, 0x20, 0x49, 0x32, 0x63, 0x00,
+			0x08, 0x00, 0x04, 0x00, 0x01, 0x00, 0x01, 0x03, 0x08, 0x00, 0x03, 0x00,
+			0x01, 0x03, 0x00, 0x00
+	},
+	//gpio
+	[1]= {
+			0x40, 0x00, 0x00, 0x01, 0x08, 0x00, 0x01, 0x00, 0x01, 0x02, 0x00, 0x00,
+			0x14, 0x00, 0x02, 0x00, 0x0b, 0x01, 0x50, 0x72, 0x6f, 0x6a, 0x65, 0x63,
+			0x74, 0x20, 0x41, 0x72, 0x61, 0x00, 0x00, 0x00, 0x10, 0x00, 0x02, 0x00,
+			0x0a, 0x02, 0x53, 0x54, 0x4d, 0x33, 0x32, 0x20, 0x47, 0x50, 0x49, 0x4f,
+			0x08, 0x00, 0x04, 0x00, 0x01, 0x00, 0x01, 0x02, 0x08, 0x00, 0x03, 0x00,
+			0x01, 0x02, 0x00, 0x00
+	},
+	//light
+	[2]= {
+			0x3c, 0x00, 0x00, 0x01, 0x08, 0x00, 0x01, 0x00, 0x01, 0x02, 0x00, 0x00,
+			0x14, 0x00, 0x02, 0x00, 0x0b, 0x01, 0x50, 0x72, 0x6f, 0x6a, 0x65, 0x63,
+			0x74, 0x20, 0x41, 0x72, 0x61, 0x00, 0x00, 0x00, 0x0c, 0x00, 0x02, 0x00,
+			0x05, 0x02, 0x53, 0x54, 0x4d, 0x33, 0x32, 0x00, 0x08, 0x00, 0x04, 0x00,
+			0x01, 0x00, 0x01, 0x0f, 0x08, 0x00, 0x03, 0x00, 0x01, 0x0f, 0x00, 0x00
+	},
+	//HID
+	[3]= {
+			0x40, 0x00, 0x00, 0x01, 0x08, 0x00, 0x01, 0x00, 0x01, 0x02, 0x00, 0x00,
+			0x14, 0x00, 0x02, 0x00, 0x0b, 0x01, 0x50, 0x72, 0x6f, 0x6a, 0x65, 0x63,
+			0x74, 0x20, 0x41, 0x72, 0x61, 0x00, 0x00, 0x00, 0x10, 0x00, 0x02, 0x00,
+			0x09, 0x02, 0x53, 0x54, 0x4d, 0x33, 0x32, 0x20, 0x48, 0x49, 0x44, 0x00,
+			0x08, 0x00, 0x04, 0x00, 0x01, 0x00, 0x01, 0x05, 0x08, 0x00, 0x03, 0x00,
+			0x01, 0x05, 0x00, 0x00
+	},
 };
-unsigned int examples_IID1_simple_i2c_module_mnfb_len = 76;
+
+struct gbsim_connection *gpio_connection = NULL;
+struct gbsim_connection *hid_connection = NULL;
+unsigned manifests_len[MODULES_COUNT] = {
+		64, 64, 60, 64,
+};
 
 int manifest_startup = 0;
+int manifest_pos = 0;
 int svc_comm_startup = 0;
 
 /* USER CODE END PV */
@@ -95,19 +132,20 @@ USBD_GREYBUS_ItfTypeDef USBD_Interface_fops_FS =
 };
 
 #define ES1_MSG_SIZE	(4 * 1024)
+unsigned volatile usb_rx = 0;
 static uint8_t cport_rbuf[ES1_MSG_SIZE];
-uint8_t cport_tbuf[ES1_MSG_SIZE];
+static uint8_t cport_tbuf_usb[ES1_MSG_SIZE];
 
 static int8_t GREYBUS_Init_FS     (void)
 {
-	fprintf(stderr, "%s\r\n", __func__);
+	printf("%s\r\n", __func__);
 	USBD_GREYBUS_SetRxBuffer(&hUsbDeviceFS, cport_rbuf);
-	USBD_GREYBUS_SetTxBuffer(&hUsbDeviceFS, cport_tbuf, ES1_MSG_SIZE);
+	USBD_GREYBUS_SetTxBuffer(&hUsbDeviceFS, cport_tbuf_usb, ES1_MSG_SIZE);
 }
 
 static int8_t GREYBUS_DeInit_FS   (void)
 {
-	fprintf(stderr, "%s\r\n", __func__);
+	printf("%s\r\n", __func__);
 }
 
 static int dump_control_msg(uint8_t *buf, uint16_t count)
@@ -115,8 +153,8 @@ static int dump_control_msg(uint8_t *buf, uint16_t count)
 	if (1) {
 		printf("AP->SVC message:\r\n");
 		for (int i = 0; i < count; i++)
-			fprintf(stdout, "%02x ", buf[i]);
-		fprintf(stdout, "\n");
+			printf("%02x ", buf[i]);
+		printf("\n");
 	}
 
 	return count;
@@ -184,9 +222,9 @@ int GREYBUS_Transmit_FS (uint8_t* pbuf, uint32_t Len)
 {
 	while(USBD_GREYBUS_GetTransmitState(&hUsbDeviceFS) != USBD_OK);
 
-	memcpy(cport_tbuf, pbuf, Len);
+	memcpy(cport_tbuf_usb, pbuf, Len);
 
-	USBD_GREYBUS_SetTxBuffer(&hUsbDeviceFS, cport_tbuf, Len);
+	USBD_GREYBUS_SetTxBuffer(&hUsbDeviceFS, cport_tbuf_usb, Len);
 	USBD_GREYBUS_TransmitPacket(&hUsbDeviceFS);
 
 	return 0;
@@ -194,12 +232,7 @@ int GREYBUS_Transmit_FS (uint8_t* pbuf, uint32_t Len)
 
 static int8_t GREYBUS_Receive_FS  (uint8_t* pbuf, uint32_t *Len)
 {
-	fprintf(stderr, "%s(%d)\n", __func__, *Len);
-
-	recv_handler(pbuf, *Len);
-
-	/* Restart OUT EP */
-	USBD_GREYBUS_ReceivePacket(&hUsbDeviceFS);
+	usb_rx = *Len;
 }
 
 static int get_interface_id(char *fname)
@@ -214,6 +247,45 @@ static int get_interface_id(char *fname)
 		iid = strtol(iid_str+3, NULL, 0);
 
 	return iid;
+}
+
+#define BUTTON_COUNT 1
+
+static struct _button_map {
+	unsigned pin;
+	unsigned bank;
+	GPIO_InitTypeDef GPIO_InitStruct;
+} button_map[BUTTON_COUNT] =
+{
+		{ GPIO_PIN_0, GPIOA},
+};
+unsigned button_status = 0;
+
+void button_init(void)
+{
+	for (int i = 0 ; i < BUTTON_COUNT ; ++i)
+	{
+		button_map[i].GPIO_InitStruct.Pin = button_map[i].pin;
+		button_map[i].GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+		button_map[i].GPIO_InitStruct.Pull = GPIO_NOPULL;
+		HAL_GPIO_Init(button_map[i].bank, &button_map[i].GPIO_InitStruct);
+	}
+}
+
+int button_check(void)
+{
+	unsigned report = 0;
+	for (int i = 0 ; i < BUTTON_COUNT ; ++i)
+	{
+		int status = HAL_GPIO_ReadPin(button_map[i].bank, button_map[i].pin);
+		if (((button_status >> i) & 1) != (status & 1)) {
+			button_status &= ~(1 << i);
+			button_status |= (status & 1) << i;
+			report = 1;
+		}
+	}
+	if (hid_connection && report)
+		hid_report_button(hid_connection, button_status);
 }
 
 /* USER CODE END 0 */
@@ -245,6 +317,8 @@ int main(void)
 
   TAILQ_INIT(&interface.connections);
 
+  button_init();
+  gpio_init();
   svc_init();
 
   USBD_GREYBUS_RegisterInterface(&hUsbDeviceFS, &USBD_Interface_fops_FS);
@@ -258,7 +332,21 @@ int main(void)
   while (1)
   {
   /* USER CODE END WHILE */
-	  HAL_Delay(10);
+	  __WFI();
+
+	  if (usb_rx) {
+		  	//printf("usb_rx(%d)\r\n", usb_rx);
+
+			recv_handler(cport_rbuf, usb_rx);
+
+			/* Restart OUT EP */
+			USBD_GREYBUS_ReceivePacket(&hUsbDeviceFS);
+
+			usb_rx = 0;
+	  }
+
+	  // Check for button changes
+	  button_check();
 
 	  if (svc_comm_startup) {
 		  printf("SVC Hello Startup\r\n");
@@ -273,14 +361,18 @@ int main(void)
 	  }
 
 	  if (manifest_startup) {
-		  printf("Manifest Startup\r\n");
-		  interface.manifest = examples_IID1_simple_i2c_module_mnfb;
-		  interface.manifest_size = examples_IID1_simple_i2c_module_mnfb_len;
-		  manifest_parse(examples_IID1_simple_i2c_module_mnfb, examples_IID1_simple_i2c_module_mnfb_len);
-		  int iid = get_interface_id("IID1");
-		  printf("Manifest iid %d\r\n", iid);
-		  if (iid > 0) {
-			  svc_request_send(GB_SVC_TYPE_INTF_HOTPLUG, iid);
+		  if (manifest_pos >= MODULES_COUNT) {
+			  manifest_startup = 0;
+		  }
+		  else
+		  {
+			  printf("Manifest Startup %d\r\n", manifest_pos);
+
+			  interface.manifest = manifests[manifest_pos];
+			  interface.manifest_size = manifests_len[manifest_pos];
+			  manifest_parse(interface.manifest, interface.manifest_size);
+			  svc_request_send(GB_SVC_TYPE_INTF_HOTPLUG, manifest_pos+1);
+			  ++manifest_pos;
 		  }
 		  manifest_startup = 0;
 	  }

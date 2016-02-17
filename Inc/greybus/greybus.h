@@ -163,6 +163,10 @@ struct op_msg {
 		struct gb_spi_device_config_response	spi_dc_rsp;
 		struct gb_spi_transfer_request		spi_xfer_req;
 		struct gb_spi_transfer_response		spi_xfer_rsp;
+		struct gb_hid_desc_response			hid_desc_rsp;
+		struct gb_hid_get_report_request	hid_get_report_req;
+		struct gb_hid_set_report_request	hid_set_report_reg;
+		struct gb_hid_input_report_request	hid_input_report_req;
 	};
 };
 
@@ -217,6 +221,7 @@ char *svc_get_operation(uint8_t type);
 void svc_init(void);
 void svc_exit(void);
 
+struct gbsim_connection *gpio_connection;
 int gpio_handler(struct gbsim_connection *, void *, size_t, void *, size_t);
 char *gpio_get_operation(uint8_t type);
 void gpio_init(void);
@@ -224,6 +229,12 @@ void gpio_init(void);
 int i2c_handler(struct gbsim_connection *, void *, size_t, void *, size_t);
 char *i2c_get_operation(uint8_t type);
 void i2c_init(void);
+
+extern struct gbsim_connection *hid_connection;
+int hid_handler(struct gbsim_connection *, void *, size_t, void *, size_t);
+char *hid_get_operation(uint8_t type);
+int hid_report_button(struct gbsim_connection *connection, unsigned value);
+void hid_init(void);
 
 int pwm_handler(struct gbsim_connection *, void *, size_t, void *, size_t);
 char *pwm_get_operation(uint8_t type);

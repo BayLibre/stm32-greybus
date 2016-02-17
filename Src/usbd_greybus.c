@@ -342,7 +342,7 @@ static uint8_t  USBD_GREYBUS_Init (USBD_HandleTypeDef *pdev,
       USBD_LL_PrepareReceive(pdev,
     		  	  	  	     GREYBUS_CPORT_OUT_EP,
                              hgreybus->RxBuffer,
-                             GREYBUS_DATA_HS_OUT_PACKET_SIZE);
+							 4 * 1024);
     }
     else
     {
@@ -350,7 +350,7 @@ static uint8_t  USBD_GREYBUS_Init (USBD_HandleTypeDef *pdev,
       USBD_LL_PrepareReceive(pdev,
     		  	  	  	  	 GREYBUS_CPORT_OUT_EP,
                              hgreybus->RxBuffer,
-                             GREYBUS_DATA_FS_OUT_PACKET_SIZE);
+							 4 * 1024);
     }
 
 
@@ -483,8 +483,18 @@ static uint8_t  USBD_GREYBUS_DataIn (USBD_HandleTypeDef *pdev, uint8_t epnum)
 
   if(pdev->pClassData != NULL)
   {
+	  // Force zlp if multiple of 64
+	  if (hgreybus->TxLength >= 64 && hgreybus->TxLength % 64 == 0) {
+		  hgreybus->TxLength = 0;
 
-	  hgreybus->TxState = 0;
+		  /* Transmit next packet */
+		  USBD_LL_Transmit(pdev,
+	                         GREYBUS_CPORT_IN_EP,
+	                         hgreybus->TxBuffer,
+	                         0);
+	  }
+	  else
+		  hgreybus->TxState = 0;
 
 	  return USBD_OK;
   }
@@ -714,7 +724,8 @@ uint8_t  USBD_GREYBUS_TransmitPacket(USBD_HandleTypeDef *pdev)
     }
     else
     {
-      return USBD_BUSY;
+    	printf("TX Busy !!!!!!\r\n");
+    	return USBD_BUSY;
     }
   }
   else
@@ -743,7 +754,7 @@ uint8_t  USBD_GREYBUS_ReceivePacket(USBD_HandleTypeDef *pdev)
       USBD_LL_PrepareReceive(pdev,
                              GREYBUS_CPORT_OUT_EP,
                              hgreybus->RxBuffer,
-                             GREYBUS_DATA_HS_OUT_PACKET_SIZE);
+                             4 * 1204);
     }
     else
     {
@@ -751,7 +762,7 @@ uint8_t  USBD_GREYBUS_ReceivePacket(USBD_HandleTypeDef *pdev)
       USBD_LL_PrepareReceive(pdev,
                              GREYBUS_CPORT_OUT_EP,
                              hgreybus->RxBuffer,
-                             GREYBUS_DATA_FS_OUT_PACKET_SIZE);
+							 4 * 1204);
     }
     return USBD_OK;
   }

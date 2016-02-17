@@ -20,7 +20,6 @@
 #define ES1_MSG_SIZE	(2 * 1024)
 
 /* Receive buffer for all data arriving from the AP */
-static char cport_rbuf[ES1_MSG_SIZE];
 static char cport_tbuf[ES1_MSG_SIZE];
 
 /*
@@ -114,10 +113,10 @@ static void get_protocol_operation(uint16_t cport_id, char **protocol,
 		*protocol = "SVC";
 		*operation = svc_get_operation(type);
 		break;
-	/*case GREYBUS_PROTOCOL_GPIO:
+	case GREYBUS_PROTOCOL_GPIO:
 		*protocol = "GPIO";
 		*operation = gpio_get_operation(type);
-		break;*/
+		break;
 	case GREYBUS_PROTOCOL_I2C:
 		*protocol = "I2C";
 		*operation = i2c_get_operation(type);
@@ -141,12 +140,12 @@ static void get_protocol_operation(uint16_t cport_id, char **protocol,
 	case GREYBUS_PROTOCOL_SPI:
 		*protocol = "SPI";
 		*operation = spi_get_operation(type);
-		break;
+		break;*/
 	case GREYBUS_PROTOCOL_LIGHTS:
 		*protocol = "LIGHTS";
 		*operation = lights_get_operation(type);
 		break;
-	case GREYBUS_PROTOCOL_POWER_SUPPLY:
+	/*case GREYBUS_PROTOCOL_POWER_SUPPLY:
 		*protocol = "POWER_SUPPLY";
 		*operation = power_supply_get_operation(type);
 		break;
@@ -154,6 +153,10 @@ static void get_protocol_operation(uint16_t cport_id, char **protocol,
 		*protocol = "FIRMWARE";
 		*operation = firmware_get_operation(type);
 		break;*/
+	case GREYBUS_PROTOCOL_HID:
+		*protocol = "HID";
+		*operation = hid_get_operation(type);
+		break;
 	default:
 		*protocol = "(Unknown protocol)";
 		*operation = "(Unknown operation)";
@@ -189,13 +192,6 @@ static int send_msg_to_ap(uint16_t hd_cport_id,
 	if (verbose)
 		gbsim_dump(message, message_size);
 
-#if 0
-	nbytes = write(to_ap, message, message_size);
-	if (nbytes < 0)
-		return nbytes;
-#endif
-	gbsim_info("Here we should send a packet of size %d\r\n", message_size);
-
 	GREYBUS_Transmit_FS(message, message_size);
 
 	return 0;
@@ -230,8 +226,8 @@ static int connection_recv_handler(struct gbsim_connection *connection,
 		return control_handler(connection, rbuf, rsize, tbuf, tsize);
 	case GREYBUS_PROTOCOL_SVC:
 		return svc_handler(connection, rbuf, rsize, tbuf, tsize);
-	/*case GREYBUS_PROTOCOL_GPIO:
-		return gpio_handler(connection, rbuf, rsize, tbuf, tsize);*/
+	case GREYBUS_PROTOCOL_GPIO:
+		return gpio_handler(connection, rbuf, rsize, tbuf, tsize);
 	case GREYBUS_PROTOCOL_I2C:
 		return i2c_handler(connection, rbuf, rsize, tbuf, tsize);
 	/*case GREYBUS_PROTOCOL_UART:
@@ -241,15 +237,17 @@ static int connection_recv_handler(struct gbsim_connection *connection,
 	case GREYBUS_PROTOCOL_SDIO:
 		return sdio_handler(connection, rbuf, rsize, tbuf, tsize);
 	case GREYBUS_PROTOCOL_SPI:
-		return spi_handler(connection, rbuf, rsize, tbuf, tsize);
+		return spi_handler(connection, rbuf, rsize, tbuf, tsize);*/
 	case GREYBUS_PROTOCOL_LIGHTS:
 		return lights_handler(connection, rbuf, rsize, tbuf, tsize);
-	case GREYBUS_PROTOCOL_POWER_SUPPLY:
+	/*case GREYBUS_PROTOCOL_POWER_SUPPLY:
 		return power_supply_handler(connection, rbuf, rsize, tbuf, tsize);
 	case GREYBUS_PROTOCOL_LOOPBACK:
 		return loopback_handler(connection, rbuf, rsize, tbuf, tsize);
 	case GREYBUS_PROTOCOL_FIRMWARE:
 		return firmware_handler(connection, rbuf, rsize, tbuf, tsize);*/
+	case GREYBUS_PROTOCOL_HID:
+		return hid_handler(connection, rbuf, rsize, tbuf, tsize);
 	default:
 		gbsim_error("handler not found for cport %u\r\n",
 				connection->cport_id);
