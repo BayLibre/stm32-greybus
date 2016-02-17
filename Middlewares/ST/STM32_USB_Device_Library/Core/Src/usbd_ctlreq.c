@@ -494,9 +494,7 @@ static void USBD_SetConfig(USBD_HandleTypeDef *pdev ,
   
   static uint8_t  cfgidx;
   
-  cfgidx = (uint8_t)(req->wValue);
-
-  printf("USBD_SetConfig(%d)\n", cfgidx);
+  cfgidx = (uint8_t)(req->wValue);                 
   
   if (cfgidx > USBD_MAX_NUM_CONFIGURATION ) 
   {            

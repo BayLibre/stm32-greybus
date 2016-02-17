@@ -82,7 +82,7 @@ int gpio_handler(struct gbsim_connection *connection, void *rbuf,
 		break;
 	case GB_GPIO_TYPE_LINE_COUNT:
 		payload_size = sizeof(struct gb_gpio_line_count_response);
-		op_rsp->gpio_lc_rsp.count = GPIO_COUNT; /* Something arbitrary, but useful */
+		op_rsp->gpio_lc_rsp.count = GPIO_COUNT-1; /* Something arbitrary, but useful */
 		break;
 	case GB_GPIO_TYPE_ACTIVATE:
 		payload_size = 0;

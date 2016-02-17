@@ -128,12 +128,12 @@ static void get_protocol_operation(uint16_t cport_id, char **protocol,
 	case GREYBUS_PROTOCOL_LOOPBACK:
 		*protocol = "LOOPBACK";
 		*operation = loopback_get_operation(type);
-		break;
+		break;*/
 	case GREYBUS_PROTOCOL_PWM:
 		*protocol = "PWM";
 		*operation = pwm_get_operation(type);
 		break;
-	case GREYBUS_PROTOCOL_SDIO:
+	/*case GREYBUS_PROTOCOL_SDIO:
 		*protocol = "SDIO";
 		*operation = sdio_get_operation(type);
 		break;
@@ -231,10 +231,10 @@ static int connection_recv_handler(struct gbsim_connection *connection,
 	case GREYBUS_PROTOCOL_I2C:
 		return i2c_handler(connection, rbuf, rsize, tbuf, tsize);
 	/*case GREYBUS_PROTOCOL_UART:
-		return uart_handler(connection, rbuf, rsize, tbuf, tsize);
+		return uart_handler(connection, rbuf, rsize, tbuf, tsize);*/
 	case GREYBUS_PROTOCOL_PWM:
 		return pwm_handler(connection, rbuf, rsize, tbuf, tsize);
-	case GREYBUS_PROTOCOL_SDIO:
+	/*case GREYBUS_PROTOCOL_SDIO:
 		return sdio_handler(connection, rbuf, rsize, tbuf, tsize);
 	case GREYBUS_PROTOCOL_SPI:
 		return spi_handler(connection, rbuf, rsize, tbuf, tsize);*/
