@@ -98,11 +98,14 @@ static int spidev_xfer_req_recv(struct gb_spi_dev *dev,
 	if (xfer->rdwr == GB_SPI_XFER_WRITE)
 		HAL_SPI_Transmit(&hspi2, xfer_data, xfer->len, HAL_MAX_DELAY);
 	else if (xfer->rdwr == GB_SPI_XFER_READ)
-		HAL_SPI_Receive(&hspi2, xfer_data, xfer->len, HAL_MAX_DELAY);
+		HAL_SPI_Receive(&hspi2, dev->buf_resp, xfer->len, HAL_MAX_DELAY);
 	else if (xfer->rdwr == (GB_SPI_XFER_READ|GB_SPI_XFER_WRITE))
-		HAL_SPI_TransmitReceive(&hspi2, xfer_data, xfer_data, xfer->len, HAL_MAX_DELAY);
+		HAL_SPI_TransmitReceive(&hspi2, xfer_data, dev->buf_resp, xfer->len, HAL_MAX_DELAY);
 
-	dev->resp_size = xfer->len;
+	if (xfer->rdwr &= GB_SPI_XFER_READ)
+		dev->buf_resp += xfer->len;
+
+	dev->resp_size += xfer->len;
 
 	return 0;
 }
