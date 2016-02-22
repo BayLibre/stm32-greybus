@@ -98,7 +98,7 @@ all: $(BUILD_DIRS) $(TARGET)
 
 $(TARGET): $(OBJS)
 	@echo LD $@
-	@$(CC) $(LDFLAGS) $(OBJS) -o $@
+	@$(CC) $(CFLAGS) $(LDFLAGS) $(OBJS) -o $@
 	@-$(PREFIX)objcopy -O ihex $@  $@.hex
 	@-$(PREFIX)size --format=berkeley $@
 
