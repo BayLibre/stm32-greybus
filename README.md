@@ -11,5 +11,6 @@ Currently, the project build with the gcc-arm-none-eabi-5_2-2015q4 toolchain :
 https://launchpad.net/gcc-arm-embedded/5.0/5-2015-q4-major/+download/gcc-arm-none-eabi-5_2-2015q4-20151219-linux.tar.bz2
 
 Simply run :
-
+```
 $ make PREFIX=/path/to/gcc-arm-none-eabi-5_2-2015q4/bin/arm-none-eabi-
+```
