@@ -74,7 +74,7 @@ static int spidev_xfer_req_recv(struct gb_spi_dev *dev,
 				struct gb_spi_transfer *xfer,
 				uint8_t *xfer_data, bool last)
 {
-	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, 0);
+	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_RESET);
 
 	if (xfer->rdwr == GB_SPI_XFER_WRITE)
 		HAL_SPI_Transmit(&hspi2, xfer_data, xfer->len, HAL_MAX_DELAY);
@@ -84,9 +84,9 @@ static int spidev_xfer_req_recv(struct gb_spi_dev *dev,
 		HAL_SPI_TransmitReceive(&hspi2, xfer_data, dev->buf_resp, xfer->len, HAL_MAX_DELAY);
 
 	if (xfer->cs_change && !last)
-		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, 1);
+		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_SET);
 	else if (!xfer->cs_change && last)
-		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, 1);
+		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_SET);
 
 	if (xfer->rdwr &= GB_SPI_XFER_READ)
 		dev->buf_resp += xfer->len;
@@ -254,5 +254,5 @@ char *spi_get_operation(uint8_t type)
 
 void spi_init(void)
 {
-	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, 1);
+	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_SET);
 }
