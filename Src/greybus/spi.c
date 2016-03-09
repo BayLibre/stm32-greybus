@@ -45,7 +45,7 @@ struct gb_spi_dev {
 	size_t	resp_size;
 	int	(*xfer_req_recv)(struct gb_spi_dev *dev,
 				 struct gb_spi_transfer *xfer,
-				 uint8_t *xfer_data);
+				 uint8_t *xfer_data, bool last);
 	struct gb_spi_dev_config *conf;
 };
 
@@ -72,35 +72,21 @@ static struct gb_spi_dev_config spidev_config = {
 
 static int spidev_xfer_req_recv(struct gb_spi_dev *dev,
 				struct gb_spi_transfer *xfer,
-				uint8_t *xfer_data)
+				uint8_t *xfer_data, bool last)
 {
-#if 0
-	int i;
-	int fd;
-	int ret;
+	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, 0);
 
-	/* if it is only a write transfer write it to a file in tmp */
-	if (xfer->rdwr & ~GB_SPI_XFER_READ) {
-		fd = open("/tmp/spi_file", O_WRONLY | O_CREAT | O_APPEND, 0);
-		lseek(fd, SEEK_END, 0);
-		ret = write(fd, xfer_data, xfer->len);
-		if (ret < xfer->len)
-			gbsim_debug("%s: Failed to write %u bytes: %d\n",
-				    __func__, xfer->len, ret);
-		close(fd);
-		return 0;
-	}
-
-	/* if it is read/write, e.g., spidev_test, just return the complement */
-	for (i = 0; i < xfer->len; i++, xfer_data++, dev->buf_resp++)
-		*dev->buf_resp = ~(*xfer_data);
-#endif
 	if (xfer->rdwr == GB_SPI_XFER_WRITE)
 		HAL_SPI_Transmit(&hspi2, xfer_data, xfer->len, HAL_MAX_DELAY);
 	else if (xfer->rdwr == GB_SPI_XFER_READ)
 		HAL_SPI_Receive(&hspi2, dev->buf_resp, xfer->len, HAL_MAX_DELAY);
 	else if (xfer->rdwr == (GB_SPI_XFER_READ|GB_SPI_XFER_WRITE))
 		HAL_SPI_TransmitReceive(&hspi2, xfer_data, dev->buf_resp, xfer->len, HAL_MAX_DELAY);
+
+	if (xfer->cs_change && !last)
+		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, 1);
+	else if (!xfer->cs_change && last)
+		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, 1);
 
 	if (xfer->rdwr &= GB_SPI_XFER_READ)
 		dev->buf_resp += xfer->len;
@@ -146,7 +132,7 @@ static int spi_master_setup(void)
 
 	master->mode = GB_SPI_MODE_MODE_3;
 	master->flags = 0;
-	master->bpwm = SPI_BPW_MASK(8) | SPI_BPW_MASK(16) | SPI_BPW_MASK(32);
+	master->bpwm = SPI_BPW_MASK(8);
 	master->min_speed_hz = 400000;
 	master->max_speed_hz = 48000000;
 	master->num_chipselect = SPI_NUM_CS;
@@ -226,7 +212,8 @@ int spi_handler(struct gbsim_connection *connection, void *rbuf,
 		spi_dev->buf_resp = op_rsp->spi_xfer_rsp.data;
 
 		for (i = 0; i < xfer_count; i++, xfer++) {
-			spi_dev->xfer_req_recv(spi_dev, xfer, xfer_data);
+			spi_dev->xfer_req_recv(spi_dev, xfer, xfer_data,
+					(i == (xfer_count-1)));
 			/* we only increment if transfer is write */
 			if (xfer->rdwr & GB_SPI_XFER_WRITE)
 				xfer_data += xfer->len;
@@ -263,4 +250,9 @@ char *spi_get_operation(uint8_t type)
 	default:
 		return "(Unknown operation)";
 	}
+}
+
+void spi_init(void)
+{
+	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, 1);
 }

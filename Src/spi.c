@@ -53,7 +53,7 @@ void MX_SPI2_Init(void)
   hspi2.Init.DataSize = SPI_DATASIZE_8BIT;
   hspi2.Init.CLKPolarity = SPI_POLARITY_LOW;
   hspi2.Init.CLKPhase = SPI_PHASE_1EDGE;
-  hspi2.Init.NSS = SPI_NSS_HARD_OUTPUT;
+  hspi2.Init.NSS = SPI_NSS_SOFT;
   hspi2.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_2;
   hspi2.Init.FirstBit = SPI_FIRSTBIT_MSB;
   hspi2.Init.TIMode = SPI_TIMODE_DISABLED;
@@ -77,7 +77,6 @@ void HAL_SPI_MspInit(SPI_HandleTypeDef* hspi)
   
     /**SPI2 GPIO Configuration    
     PC2     ------> SPI2_MISO
-    PB12     ------> SPI2_NSS
     PB13     ------> SPI2_SCK
     PB15     ------> SPI2_MOSI 
     */
@@ -88,7 +87,7 @@ void HAL_SPI_MspInit(SPI_HandleTypeDef* hspi)
     GPIO_InitStruct.Alternate = GPIO_AF5_SPI2;
     HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
-    GPIO_InitStruct.Pin = GPIO_PIN_12|GPIO_PIN_13|GPIO_PIN_15;
+    GPIO_InitStruct.Pin = GPIO_PIN_13|GPIO_PIN_15;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_HIGH;
@@ -117,13 +116,12 @@ void HAL_SPI_MspDeInit(SPI_HandleTypeDef* hspi)
   
     /**SPI2 GPIO Configuration    
     PC2     ------> SPI2_MISO
-    PB12     ------> SPI2_NSS
     PB13     ------> SPI2_SCK
     PB15     ------> SPI2_MOSI 
     */
     HAL_GPIO_DeInit(GPIOC, GPIO_PIN_2);
 
-    HAL_GPIO_DeInit(GPIOB, GPIO_PIN_12|GPIO_PIN_13|GPIO_PIN_15);
+    HAL_GPIO_DeInit(GPIOB, GPIO_PIN_13|GPIO_PIN_15);
 
     /* Peripheral interrupt Deinit*/
     HAL_NVIC_DisableIRQ(SPI2_IRQn);
