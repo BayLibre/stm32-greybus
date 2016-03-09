@@ -19,6 +19,7 @@
 #include "greybus/greybus.h"
 #include "endian.h"
 
+/*
 #define HID_REPORT_LENGTH	28
 static char hid_report[] = {
 	    0x05, 0x01,                    // USAGE_PAGE (Generic Desktop)
@@ -37,13 +38,43 @@ static char hid_report[] = {
 	    0xc0,                          //   END_COLLECTION
 	    0xc0                           // END_COLLECTION
 };
+ */
 
-uint8_t hid_status = 0;
+#define HID_REPORT_LENGTH	48
+static char hid_report[] = {
+	    0x05, 0x01,                    // USAGE_PAGE (Generic Desktop)
+	    0x09, 0x05,                    // USAGE (Game Pad)
+	    0xa1, 0x01,                    // COLLECTION (Application)
+	    0xa1, 0x00,                    //   COLLECTION (Physical)
+	    0x05, 0x09,                    //     USAGE_PAGE (Button)
+	    0x19, 0x01,                    //     USAGE_MINIMUM (Button 1)
+	    0x29, 0x02,                    //     USAGE_MAXIMUM (Button 2)
+	    0x15, 0x00,                    //     LOGICAL_MINIMUM (0)
+	    0x25, 0x01,                    //     LOGICAL_MAXIMUM (1)
+	    0x95, 0x02,                    //     REPORT_COUNT (2)
+	    0x75, 0x01,                    //     REPORT_SIZE (1)
+	    0x81, 0x02,                    //     INPUT (Data,Var,Abs)
+	    0x95, 0x01,                    //     REPORT_COUNT (1)
+	    0x75, 0x06,                    //     REPORT_SIZE (6)
+	    0x81, 0x02,                    //     INPUT (Data,Var,Abs)
+	    0x05, 0x01,                    //     USAGE_PAGE (Generic Desktop)
+	    0x09, 0x30,                    //     USAGE (X)
+	    0x09, 0x31,                    //     USAGE (Y)
+	    0x15, 0x81,                    //     LOGICAL_MINIMUM (-127)
+	    0x25, 0x7f,                    //     LOGICAL_MAXIMUM (127)
+	    0x75, 0x08,                    //     REPORT_SIZE (8)
+	    0x95, 0x02,                    //     REPORT_COUNT (2)
+	    0x81, 0x02,                    //     INPUT (Data,Var,Abs)
+	    0xc0,                          //     END_COLLECTION
+	    0xc0                           // END_COLLECTION
+};
+
+uint8_t hid_status[3];
 
 #define HID_MSG_SIZE	(sizeof(struct gb_operation_msg_hdr)+2)
 uint8_t hid_tbuf[HID_MSG_SIZE];
 
-int hid_report_button(struct gbsim_connection *connection, unsigned value)
+int hid_report_button(struct gbsim_connection *connection, uint8_t *values)
 {
 	void *tbuf = &hid_tbuf[0];
 	size_t tsize = sizeof(hid_tbuf);
@@ -52,15 +83,15 @@ int hid_report_button(struct gbsim_connection *connection, unsigned value)
 	uint16_t message_size = sizeof(*oph);
 	size_t payload_size;
 
-	gbsim_info("hid_report_button(%d)\r\n", value);
-	hid_status = value;
+	//gbsim_info("hid_report_button(%d,%d,%d)\r\n", values[0],values[1],values[2]);
+	memcpy(hid_status, values, 3);
 
 	memset(tbuf, 0, tsize);	/* Zero buffer before use */
 
 	oph->type = GB_HID_TYPE_IRQ_EVENT;
 
-	payload_size = 1;
-	msg->hid_input_report_req.report[0] = hid_status;
+	payload_size = 3;
+	memcpy(&msg->hid_input_report_req.report[0], values, 3);
 
 	message_size = sizeof(struct gb_operation_msg_hdr) + payload_size;
 	return send_request(connection->hd_cport_id, msg, message_size, 0,
@@ -116,8 +147,8 @@ int hid_handler(struct gbsim_connection *connection, void *rbuf,
 		hid_connection = NULL;
 		break;
 	case GB_HID_TYPE_GET_REPORT:
-		payload_size = 1;
-		op_rsp->hid_input_report_req.report[0] = hid_status;
+		payload_size = 3;
+		memcpy(&op_rsp->hid_input_report_req.report[0], hid_status, 3);
 		break;
 	case GB_HID_TYPE_SET_REPORT:
 		// Nothing to do... yet

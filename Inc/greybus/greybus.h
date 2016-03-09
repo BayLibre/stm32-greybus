@@ -233,7 +233,7 @@ void i2c_init(void);
 extern struct gbsim_connection *hid_connection;
 int hid_handler(struct gbsim_connection *, void *, size_t, void *, size_t);
 char *hid_get_operation(uint8_t type);
-int hid_report_button(struct gbsim_connection *connection, unsigned value);
+int hid_report_button(struct gbsim_connection *connection, uint8_t *value);
 void hid_init(void);
 
 int pwm_handler(struct gbsim_connection *, void *, size_t, void *, size_t);

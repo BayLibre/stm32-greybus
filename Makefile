@@ -23,7 +23,8 @@ SRC_FILES =  gpio.c \
 	     tim.c \
 	     usbd_desc.c \
 	     usbd_conf.c \
-	     usbd_greybus.c
+	     usbd_greybus.c \
+	     nunchuk.c
 GREYBUS_PATH = Src/greybus
 GREYBUS_FILES = gpio.c \
 		light.c \

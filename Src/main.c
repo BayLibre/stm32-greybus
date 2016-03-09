@@ -41,6 +41,7 @@
 #include "usbd_greybus.h"
 #include "greybus/greybus.h"
 #include "endian.h"
+#include "nunchuk.h"
 
 
 /* USER CODE BEGIN Includes */
@@ -268,6 +269,7 @@ static int get_interface_id(char *fname)
 	return iid;
 }
 
+/*
 #define BUTTON_COUNT 1
 
 static struct _button_map {
@@ -279,32 +281,41 @@ static struct _button_map {
 		{ GPIO_PIN_0, GPIOA},
 };
 unsigned button_status = 0;
+*/
+
+static uint8_t report[3], last_report[3];
+static unsigned nunchuk_init_done = 0, not_first_report = 0;
 
 void button_init(void)
 {
-	for (int i = 0 ; i < BUTTON_COUNT ; ++i)
-	{
-		button_map[i].GPIO_InitStruct.Pin = button_map[i].pin;
-		button_map[i].GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-		button_map[i].GPIO_InitStruct.Pull = GPIO_NOPULL;
-		HAL_GPIO_Init(button_map[i].bank, &button_map[i].GPIO_InitStruct);
-	}
+	if (nunchuk_init() >= 0)
+		nunchuk_init_done = 1;
 }
 
 int button_check(void)
 {
-	unsigned report = 0;
-	for (int i = 0 ; i < BUTTON_COUNT ; ++i)
-	{
-		int status = HAL_GPIO_ReadPin(button_map[i].bank, button_map[i].pin);
-		if (((button_status >> i) & 1) != (status & 1)) {
-			button_status &= ~(1 << i);
-			button_status |= (status & 1) << i;
-			report = 1;
-		}
+	if (!hid_connection)
+		return 0;
+
+	if (!nunchuk_init_done) {
+		if (nunchuk_init() >= 0)
+			nunchuk_init_done = 1;
+		else
+			return -1;
 	}
-	if (hid_connection && report)
-		hid_report_button(hid_connection, button_status);
+
+	if (nunchuk_update(report) < 0) {
+		nunchuk_init_done = 0;
+		return -1;
+	}
+
+	if (!not_first_report || memcmp(report, last_report, 3))
+		hid_report_button(hid_connection, report);
+
+	if (!not_first_report)
+		not_first_report = 1;
+
+	memcpy(last_report, report, 3);
 }
 
 /* USER CODE END 0 */
