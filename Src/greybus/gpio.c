@@ -21,7 +21,7 @@
 #include "greybus/greybus.h"
 #include "gpio.h"
 
-#define GPIO_COUNT	23
+#define GPIO_COUNT	3
 
 static struct _gpio_map {
 	unsigned pin;
@@ -29,29 +29,9 @@ static struct _gpio_map {
 	GPIO_InitTypeDef GPIO_InitStruct;
 } gpio_map[GPIO_COUNT] =
 {
-		{ GPIO_PIN_2, GPIOE},
-		{ GPIO_PIN_4, GPIOE},
-		{ GPIO_PIN_5, GPIOE},
-		{ GPIO_PIN_6, GPIOE},
-		{ GPIO_PIN_7, GPIOE},
-		{ GPIO_PIN_8, GPIOE},
-		{ GPIO_PIN_9, GPIOE},
-		{ GPIO_PIN_10, GPIOE},
-		{ GPIO_PIN_11, GPIOE},
-		{ GPIO_PIN_12, GPIOE},
-		{ GPIO_PIN_13, GPIOE},
-		{ GPIO_PIN_14, GPIOE},
-		{ GPIO_PIN_15, GPIOE},
-		{ GPIO_PIN_0, GPIOD},
-		{ GPIO_PIN_1, GPIOD},
-		{ GPIO_PIN_2, GPIOD},
-		{ GPIO_PIN_3, GPIOD},
-		{ GPIO_PIN_6, GPIOD},
-		{ GPIO_PIN_7, GPIOD},
-		{ GPIO_PIN_8, GPIOD},
-		{ GPIO_PIN_9, GPIOD},
-		{ GPIO_PIN_10, GPIOD},
-		{ GPIO_PIN_11, GPIOD},
+		{ GPIO_PIN_7, GPIOE}, //reset
+		{ GPIO_PIN_8, GPIOE}, //dc
+		{ GPIO_PIN_9, GPIOE}, //led
 };
 
 int gpio_handler(struct gbsim_connection *connection, void *rbuf,

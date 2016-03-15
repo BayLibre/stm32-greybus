@@ -342,7 +342,7 @@ static uint8_t  USBD_GREYBUS_Init (USBD_HandleTypeDef *pdev,
       USBD_LL_PrepareReceive(pdev,
     		  	  	  	     GREYBUS_CPORT_OUT_EP,
                              hgreybus->RxBuffer,
-							 4 * 1024);
+							 16 * 1024);
     }
     else
     {
@@ -350,7 +350,7 @@ static uint8_t  USBD_GREYBUS_Init (USBD_HandleTypeDef *pdev,
       USBD_LL_PrepareReceive(pdev,
     		  	  	  	  	 GREYBUS_CPORT_OUT_EP,
                              hgreybus->RxBuffer,
-							 4 * 1024);
+							 16 * 1024);
     }
 
 
@@ -754,7 +754,7 @@ uint8_t  USBD_GREYBUS_ReceivePacket(USBD_HandleTypeDef *pdev)
       USBD_LL_PrepareReceive(pdev,
                              GREYBUS_CPORT_OUT_EP,
                              hgreybus->RxBuffer,
-                             4 * 1204);
+                             16 * 1204);
     }
     else
     {
@@ -762,7 +762,7 @@ uint8_t  USBD_GREYBUS_ReceivePacket(USBD_HandleTypeDef *pdev)
       USBD_LL_PrepareReceive(pdev,
                              GREYBUS_CPORT_OUT_EP,
                              hgreybus->RxBuffer,
-							 4 * 1204);
+							 16 * 1204);
     }
     return USBD_OK;
   }

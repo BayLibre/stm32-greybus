@@ -74,6 +74,11 @@ static int spidev_xfer_req_recv(struct gb_spi_dev *dev,
 				struct gb_spi_transfer *xfer,
 				uint8_t *xfer_data, bool last)
 {
+	/*printf("SPI %s%s len %d cs_change %d last %d\r\n",
+			(xfer->rdwr == GB_SPI_XFER_WRITE?"w":"-"),
+			(xfer->rdwr == GB_SPI_XFER_READ?"R":"-"),
+			xfer->len, 	xfer->cs_change, last);*/
+
 	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_RESET);
 
 	if (xfer->rdwr == GB_SPI_XFER_WRITE)

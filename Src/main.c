@@ -113,7 +113,7 @@ USBD_GREYBUS_ItfTypeDef USBD_Interface_fops_FS =
   GREYBUS_Receive_FS
 };
 
-#define ES1_MSG_SIZE	(4 * 1024)
+#define ES1_MSG_SIZE	(16 * 1024)
 unsigned volatile usb_rx = 0;
 static uint8_t cport_rbuf[ES1_MSG_SIZE];
 static uint8_t cport_tbuf_usb[ES1_MSG_SIZE];
