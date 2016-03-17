@@ -128,7 +128,7 @@ static struct gb_light *light_init(void)
 	light = calloc(1, sizeof(*light));
 
 	light->id = 0;
-	snprintf(light->name, sizeof(light->name), "gbsim%d", 0);
+	snprintf(light->name, sizeof(light->name), "stm%d", 0);
 
 	light->channel_count = 4;
 	light->channels = calloc(light->channel_count,

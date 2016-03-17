@@ -69,6 +69,27 @@ static struct gb_spi_dev_config spidev_config = {
 	.device_type	= GB_SPI_SPI_DEV,
 };
 
+static int volatile hspi_result;
+
+void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi)
+{
+	hspi_result = 1;
+}
+
+void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi)
+{
+	hspi_result = 2;
+}
+
+void HAL_SPI_TxRxCpltCallback(SPI_HandleTypeDef *hspi)
+{
+	hspi_result = 3;
+}
+
+void HAL_SPI_ErrorCallback(SPI_HandleTypeDef *hspi)
+{
+	hspi_result = -1;
+}
 
 static int spidev_xfer_req_recv(struct gb_spi_dev *dev,
 				struct gb_spi_transfer *xfer,
@@ -81,12 +102,21 @@ static int spidev_xfer_req_recv(struct gb_spi_dev *dev,
 
 	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_RESET);
 
+	hspi_result = 0;
+
 	if (xfer->rdwr == GB_SPI_XFER_WRITE)
-		HAL_SPI_Transmit(&hspi2, xfer_data, xfer->len, HAL_MAX_DELAY);
+		HAL_SPI_Transmit_DMA(&hspi2, xfer_data, xfer->len);
 	else if (xfer->rdwr == GB_SPI_XFER_READ)
-		HAL_SPI_Receive(&hspi2, dev->buf_resp, xfer->len, HAL_MAX_DELAY);
+		HAL_SPI_Receive_DMA(&hspi2, dev->buf_resp, xfer->len);
 	else if (xfer->rdwr == (GB_SPI_XFER_READ|GB_SPI_XFER_WRITE))
-		HAL_SPI_TransmitReceive(&hspi2, xfer_data, dev->buf_resp, xfer->len, HAL_MAX_DELAY);
+		HAL_SPI_TransmitReceive_DMA(&hspi2, xfer_data, dev->buf_resp, xfer->len);
+
+	do
+		__WFI();
+	while(hspi_result == 0);
+
+	if (hspi_result < 0)
+		goto spi_err;
 
 	if (xfer->cs_change && !last)
 		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_SET);
@@ -99,6 +129,10 @@ static int spidev_xfer_req_recv(struct gb_spi_dev *dev,
 	dev->resp_size += xfer->len;
 
 	return 0;
+
+spi_err:
+	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_SET);
+	return -EIO;
 }
 
 static int spi_set_device(uint8_t cs, int spi_type)

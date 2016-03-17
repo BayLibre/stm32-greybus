@@ -32,6 +32,7 @@
   */
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f4xx_hal.h"
+#include "dma.h"
 #include "i2c.h"
 #include "spi.h"
 #include "tim.h"
@@ -124,12 +125,6 @@ static int8_t GREYBUS_Init_FS     (void)
 	USBD_GREYBUS_SetRxBuffer(&hUsbDeviceFS, cport_rbuf);
 	USBD_GREYBUS_SetTxBuffer(&hUsbDeviceFS, cport_tbuf_usb, ES1_MSG_SIZE);
 }
-
-static int8_t GREYBUS_DeInit_FS   (void)
-{
-	printf("%s\r\n", __func__);
-}
-
 static int dump_control_msg(uint8_t *buf, uint16_t count)
 {
 	if (1) {
@@ -280,6 +275,17 @@ int button_check(void)
 	memcpy(last_report, report, 3);
 }
 
+static int8_t GREYBUS_DeInit_FS   (void)
+{
+	printf("%s\r\n", __func__);
+	nunchuk_init_done = 0;
+	not_first_report = 0;
+	usb_rx = 0;
+	svc_comm_startup = 0;
+	manifest_startup = 0;
+	manifest_pos = 0;
+}
+
 /* USER CODE END 0 */
 
 int main(void)
@@ -299,6 +305,7 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_DMA_Init();
   MX_I2C3_Init();
   MX_SPI2_Init();
   MX_USART3_UART_Init();
